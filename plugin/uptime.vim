@@ -1,5 +1,5 @@
 " Name:          uptime (global plugin)
-" Version:       1.1
+" Version:       1.2
 " Author:        Ciaran McCreesh <ciaranm at gentoo.org>
 " Updates:       http://dev.gentoo.org/~ciaranm/vim/
 " Purpose:       Display vim uptime
@@ -8,31 +8,59 @@
 "                itself.
 "
 " Usage:         :Uptime
+"                :Uptime regular   " default format
+"                :Uptime short     " for 'short' format output
+"                :Uptime seconds   " uptime in seconds
 "
 " Requirements:  Untested on Vim versions below 6.2
 "
-" ChangeLog:
-"     v1.1 (20040417)
-"         * pretty times
-"
-"     v1.0 (20040417)
-"         * initial release
+" ChangeLog:     see :help uptime-history
 
 " when the plugin is sourced, record the time
 let s:start_time = localtime()
 
-" how long have we been up?
-function! Uptime()
-    let l:current_time = localtime()
-    let l:uptime_in_seconds = l:current_time - s:start_time
+" format output in seconds (doesn't do much)
+function! s:FormatSeconds(uptime_in_seconds)
+    return "" . a:uptime_in_seconds
+endfun
 
+" convert integer to 07 format (two digits is all we need)
+function! s:AddLeadingZero(i)
+    if a:i == 0
+        return "00"
+    elseif a:i < 10
+        return "0" . a:i
+    else
+        return "" . a:i
+    endif
+endfun
+
+" format short output
+function! s:FormatShort(uptime_in_seconds)
     " get days, hours, minutes, seconds
-    let l:m_s = (l:uptime_in_seconds) % 60
-    let l:m_m = (l:uptime_in_seconds / 60) % 60
-    let l:m_h = (l:uptime_in_seconds / (60 * 60)) % 24
-    let l:m_d = (l:uptime_in_seconds / (60 * 60 * 24))
+    let l:m_s = (a:uptime_in_seconds) % 60
+    let l:m_m = (a:uptime_in_seconds / 60) % 60
+    let l:m_h = (a:uptime_in_seconds / (60 * 60)) % 24
+    let l:m_d = (a:uptime_in_seconds / (60 * 60 * 24))
 
-    " make it look purdy
+    let l:msg = ""
+    if (l:m_d > 0)
+        let l:msg = l:msg . l:m_d . "d "
+    endif
+    let l:msg = l:msg . s:AddLeadingZero(l:m_h) . ":" .
+                \       s:AddLeadingZero(l:m_m) . ":" .
+                \       s:AddLeadingZero(l:m_s)
+    return l:msg
+endfun
+
+" format regular output
+function! s:FormatRegular(uptime_in_seconds)
+    " get days, hours, minutes, seconds
+    let l:m_s = (a:uptime_in_seconds) % 60
+    let l:m_m = (a:uptime_in_seconds / 60) % 60
+    let l:m_h = (a:uptime_in_seconds / (60 * 60)) % 24
+    let l:m_d = (a:uptime_in_seconds / (60 * 60 * 24))
+
     let l:d = 0
     let l:msg = v:progname . strftime(" has been up for ")
 
@@ -54,10 +82,30 @@ function! Uptime()
 
     let l:msg = l:msg . l:m_s . (l:m_s == 1 ? " second " : " seconds ")
 
-    " echo it
-    echo l:msg
+    return l:msg
 endfun
 
-command! -nargs=0 Uptime :call Uptime()
+" how long have we been up?
+function! Uptime(...)
+    let l:current_time = localtime()
+    let l:uptime_in_seconds = l:current_time - s:start_time
+
+    if a:0 == 0
+        echo s:FormatRegular(l:uptime_in_seconds)
+    elseif a:0 != 1
+        throw "Expected 0 or 1 arguments but got " . a:0
+    elseif a:1 ==? "regular" || a:1 ==? ""
+        echo s:FormatRegular(l:uptime_in_seconds)
+    elseif a:1 ==? "short"
+        echo s:FormatShort(l:uptime_in_seconds)
+    elseif a:1 ==? "seconds"
+        echo s:FormatSeconds(l:uptime_in_seconds)
+    else
+        throw "Unrecognised format '" . a:1 . 
+                    \ "' (expected 'regular', 'short' or 'seconds')"
+    endif
+endfun
+
+command! -nargs=? Uptime :call Uptime(<q-args>)
 
 " vim: set tw=80 ts=4 et :
