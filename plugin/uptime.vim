@@ -1,5 +1,5 @@
 " Name:          uptime (global plugin)
-" Version:       1.2
+" Version:       1.3
 " Author:        Ciaran McCreesh <ciaranm at gentoo.org>
 " Updates:       http://dev.gentoo.org/~ciaranm/vim/
 " Purpose:       Display vim uptime
@@ -89,23 +89,26 @@ endfun
 function! Uptime(...)
     let l:current_time = localtime()
     let l:uptime_in_seconds = l:current_time - s:start_time
+    let l:result = ""
 
     if a:0 == 0
-        echo s:FormatRegular(l:uptime_in_seconds)
+        let l:result = s:FormatRegular(l:uptime_in_seconds)
     elseif a:0 != 1
         throw "Expected 0 or 1 arguments but got " . a:0
-    elseif a:1 ==? "regular" || a:1 ==? ""
-        echo s:FormatRegular(l:uptime_in_seconds)
-    elseif a:1 ==? "short"
-        echo s:FormatShort(l:uptime_in_seconds)
-    elseif a:1 ==? "seconds"
-        echo s:FormatSeconds(l:uptime_in_seconds)
+    elseif a:1 ==? "regular" || a:1 ==? "" || a:1 ==? "1"
+        let l:result = s:FormatRegular(l:uptime_in_seconds)
+    elseif a:1 ==? "short" || a:1 ==? "2"
+        let l:result = s:FormatShort(l:uptime_in_seconds)
+    elseif a:1 ==? "seconds" || a:1 ==? "3"
+        let l:result = s:FormatSeconds(l:uptime_in_seconds)
     else
         throw "Unrecognised format '" . a:1 . 
                     \ "' (expected 'regular', 'short' or 'seconds')"
     endif
+
+    return l:result
 endfun
 
-command! -nargs=? Uptime :call Uptime(<q-args>)
+command! -nargs=? Uptime :echo Uptime(<q-args>)
 
 " vim: set tw=80 ts=4 et :
