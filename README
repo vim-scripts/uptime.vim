@@ -1,0 +1,17 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=965
+
+This script displays vim uptimes.
+
+Usage:
+
+:Uptime
+:Uptime regular (gvim has been up for 2 days, 1 hour, 17 minutes and 2 seconds)
+:Uptime short (2d 01:17:02)
+:Uptime seconds (264)
+
+See :help uptime.txt for details.
+
+Requirements:
+
+This plugin has not been tested on Vim versions below 6.2
+
